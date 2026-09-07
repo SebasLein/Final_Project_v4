@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  GATEKEEPER
+  RESIDENT
+}
+
+enum VisitorType {
+  VISITOR
+  DELIVERY
+  TECHNICIAN
+}
+
+enum VisitorStatus {
+  AUTHORIZED
+  CANCELLED
+  ENTERED
+  EXITED
+}
+
+enum PackageStatus {
+  PENDING
+  DELIVERED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CANCELLED
+}
+
+/// Una propiedad horizontal (tenant) administrada dentro de DOMUX.
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  users        User[]
+  units        Unit[]
+  visitors     Visitor[]
+  packages     Package[]
+  commonAreas  CommonArea[]
+  reservations Reservation[]
+  notices      Notice[]
+  audits       AuditLog[]
+}
+
+model User {
+  id               String   @id @default(cuid())
+  // SUPERADMIN no pertenece a ningún tenant.
+  tenantId         String?
+  tenant           Tenant?  @relation(fields: [tenantId], references: [id])
+  unitId           String?
+  unit             Unit?    @relation(fields: [unitId], references: [id])
+  name             String
+  email            String   @unique
+  passwordHash     String
+  role             Role
+  active           Boolean  @default(true)
+  refreshTokenHash String?
+  createdAt        DateTime @default(now())
+
+  audits             AuditLog[]
+  reservations       Reservation[]
+  authorizedVisitors Visitor[]     @relation("VisitorAuthorizedBy")
+  registeredVisitors Visitor[]     @relation("VisitorRegisteredBy")
+  registeredPackages Package[]     @relation("PackageRegisteredBy")
+  deliveredPackages  Package[]     @relation("PackageDeliveredBy")
+  createdNotices     Notice[]      @relation("NoticeCreatedBy")
+
+  @@index([tenantId])
+}
+
+model Unit {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  code      String
+  createdAt DateTime @default(now())
+
+  residents User[]
+  visitors  Visitor[]
+  packages  Package[]
+
+  @@unique([tenantId, code])
+}
+
+model Visitor {
+  id         String        @id @default(cuid())
+  tenantId   String
+  tenant     Tenant        @relation(fields: [tenantId], references: [id])
+  unitId     String
+  unit       Unit          @relation(fields: [unitId], references: [id])
+  fullName   String
+  documentId String
+  type       VisitorType
+  status     VisitorStatus @default(AUTHORIZED)
+
+  authorizedById String
+  authorizedBy   User    @relation("VisitorAuthorizedBy", fields: [authorizedById], references: [id])
+  registeredById String?
+  registeredBy   User?   @relation("VisitorRegisteredBy", fields: [registeredById], references: [id])
+
+  entryAt   DateTime?
+  exitAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([tenantId, status])
+  @@index([unitId])
+}
+
+model Package {
+  id        String        @id @default(cuid())
+  tenantId  String
+  tenant    Tenant        @relation(fields: [tenantId], references: [id])
+  unitId    String
+  unit      Unit          @relation(fields: [unitId], references: [id])
+  recipient String
+  status    PackageStatus @default(PENDING)
+
+  registeredById String
+  registeredBy   User    @relation("PackageRegisteredBy", fields: [registeredById], references: [id])
+  deliveredById  String?
+  deliveredBy    User?   @relation("PackageDeliveredBy", fields: [deliveredById], references: [id])
+
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId, status])
+  @@index([unitId])
+}
+
+model CommonArea {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  name        String
+  description String?
+  openTime    String
+  closeTime   String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  reservations Reservation[]
+
+  @@unique([tenantId, name])
+}
+
+model Reservation {
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenant       Tenant            @relation(fields: [tenantId], references: [id])
+  commonAreaId String
+  commonArea   CommonArea        @relation(fields: [commonAreaId], references: [id])
+  residentId   String
+  resident     User              @relation(fields: [residentId], references: [id])
+  date         DateTime
+  startTime    String
+  endTime      String
+  status       ReservationStatus @default(ACTIVE)
+  createdAt    DateTime          @default(now())
+
+  @@index([commonAreaId, date])
+  @@index([tenantId])
+}
+
+model Notice {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  title       String
+  body        String
+  active      Boolean  @default(true)
+  publishedAt DateTime @default(now())
+
+  createdById String
+  createdBy   User   @relation("NoticeCreatedBy", fields: [createdById], references: [id])
+
+  @@index([tenantId, active])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}

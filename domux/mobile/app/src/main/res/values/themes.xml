@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.Domux" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/domux_ink</item>
+        <item name="android:windowBackground">@color/domux_ink</item>
+    </style>
+</resources>
