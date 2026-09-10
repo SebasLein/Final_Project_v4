@@ -216,17 +216,12 @@ export async function listVisitors(actor: AuthUser, filters: VisitorFilters) {
     });
   }
 
-  // RESIDENT: Obtener la unidad del residente para mostrarle las visitas recibidas en su apartamento
-  const resident = await prisma.user.findUnique({ where: { id: actor.sub } });
-
+  // RESIDENT solo ve las autorizaciones que creó personalmente.
   return prisma.visitor.findMany({
     where: {
       tenantId,
       status: filters.status,
-      OR: [
-        { authorizedById: actor.sub },
-        ...(resident?.unitId ? [{ unitId: resident.unitId }] : []),
-      ],
+      authorizedById: actor.sub,
     },
     include: { unit: true },
     orderBy: { createdAt: "desc" },

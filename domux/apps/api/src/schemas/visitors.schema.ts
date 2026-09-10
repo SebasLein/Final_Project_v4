@@ -5,35 +5,35 @@ const visitorType = z.enum(["VISITOR", "DELIVERY", "TECHNICIAN"]);
 export const authorizeVisitorSchema = z.object({
   fullName: z
     .string()
-    .min(3, "El nombre completo debe tener al menos 3 caracteres")
-    .trim(),
+    .trim()
+    .min(3, "El nombre completo debe tener al menos 3 caracteres"),
   documentId: z
     .string()
-    .min(5, "El documento debe tener al menos 5 caracteres")
-    .trim(),
+    .trim()
+    .min(5, "El documento debe tener al menos 5 caracteres"),
   type: visitorType,
 });
 
 export const registerVisitorManuallySchema = z.object({
   fullName: z
     .string()
-    .min(3, "El nombre completo debe tener al menos 3 caracteres")
-    .trim(),
+    .trim()
+    .min(3, "El nombre completo debe tener al menos 3 caracteres"),
   documentId: z
     .string()
-    .min(5, "El documento debe tener al menos 5 caracteres")
-    .trim(),
+    .trim()
+    .min(5, "El documento debe tener al menos 5 caracteres"),
   type: visitorType,
   unitCode: z
     .string()
-    .min(1, "El código de unidad es requerido")
     .trim()
+    .min(1, "El código de unidad es requerido")
     .toUpperCase(),
 });
 
 export const visitorFiltersSchema = z.object({
   status: z.enum(["AUTHORIZED", "CANCELLED", "ENTERED", "EXITED"]).optional(),
-  unitCode: z.string().trim().toUpperCase().optional(),
+  unitCode: z.string().trim().min(1).toUpperCase().optional(),
 });
 
 export type AuthorizeVisitorInput = z.infer<typeof authorizeVisitorSchema>;
