@@ -18,7 +18,7 @@ export async function listNotices(tenantId: string, onlyActive: boolean) {
         select: { name: true, role: true },
       },
     },
-    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    orderBy: { publishedAt: "desc" },
   });
 }
 

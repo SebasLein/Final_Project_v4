@@ -23,7 +23,6 @@ export async function registerPackage(
       tenantId,
       unitId: unit.id,
       recipient: input.recipient,
-      courier: (input as any).courier ?? null,
       status: "PENDING",
       registeredById: actor.sub,
     },
