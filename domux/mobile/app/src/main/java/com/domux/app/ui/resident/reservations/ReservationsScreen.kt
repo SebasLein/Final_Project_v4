@@ -78,6 +78,7 @@ private fun ReservationRow(reservation: ReservationDto, onCancel: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateReservationDialog(
     areas: List<CommonAreaDto>,
