@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export const createTenantSchema = z.object({
-  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres").trim(),
+  name: z.string().trim().min(3, "El nombre debe tener al menos 3 caracteres"),
   slug: z
     .string()
-    .min(3, "El slug debe tener al menos 3 caracteres")
     .trim()
+    .min(3, "El slug debe tener al menos 3 caracteres")
     .toLowerCase()
     .regex(/^[a-z0-9-]+$/, "El slug solo admite minúsculas, números y guiones"),
 });
@@ -13,8 +13,8 @@ export const createTenantSchema = z.object({
 export const updateTenantSchema = z.object({
   name: z
     .string()
-    .min(3, "El nombre debe tener al menos 3 caracteres")
     .trim()
+    .min(3, "El nombre debe tener al menos 3 caracteres")
     .optional(),
   active: z.boolean().optional(),
 });

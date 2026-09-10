@@ -13,17 +13,35 @@ const createAdminInputSchema = z.object({
   tenantId: z.string().trim().min(1, "La propiedad es obligatoria"),
 });
 
+const createTenantInputSchema = z.object({
+  name: z.string().trim().min(3, "El nombre debe tener al menos 3 caracteres"),
+  slug: z
+    .string()
+    .trim()
+    .min(3, "El slug debe tener al menos 3 caracteres")
+    .toLowerCase()
+    .regex(/^[a-z0-9-]+$/, "El slug solo admite minúsculas, números y guiones"),
+});
+
 export async function createTenantAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const name = String(formData.get("name") ?? "").trim();
-  const slug = String(formData.get("slug") ?? "").trim();
+  const result = createTenantInputSchema.safeParse({
+    name: formData.get("name"),
+    slug: formData.get("slug"),
+  });
+
+  if (!result.success) {
+    return {
+      error: result.error.issues.map((issue) => issue.message).join("; "),
+    };
+  }
 
   try {
     await apiFetch("/tenants", {
       method: "POST",
-      body: JSON.stringify({ name, slug }),
+      body: JSON.stringify(result.data),
     });
   } catch (err) {
     return {

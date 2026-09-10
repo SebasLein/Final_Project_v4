@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { recordAudit } from "../lib/audit";
-import { NotFoundError } from "../lib/errors";
+import { ConflictError, NotFoundError } from "../lib/errors";
 import { AuthUser } from "../types";
 import {
   CreateTenantInput,
@@ -32,7 +32,7 @@ export async function getTenantById(tenantId: string) {
 export async function createTenant(actor: AuthUser, input: CreateTenantInput) {
   const slug = normalizeSlug(input.slug);
   const existing = await prisma.tenant.findUnique({ where: { slug } });
-  if (existing) throw new NotFoundError("Ya existe una propiedad con ese slug");
+  if (existing) throw new ConflictError("Ya existe una propiedad con ese slug");
 
   const tenant = await prisma.tenant.create({
     data: { name: input.name, slug },

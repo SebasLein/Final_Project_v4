@@ -29,16 +29,33 @@ const createTenantUserInputSchema = z
     }
   });
 
+const createUnitInputSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(1, "El código de unidad es requerido")
+    .toUpperCase(),
+});
+
 // --- Unidades ---
 export async function createUnitAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const code = String(formData.get("code") ?? "").trim();
+  const result = createUnitInputSchema.safeParse({
+    code: formData.get("code"),
+  });
+
+  if (!result.success) {
+    return {
+      error: result.error.issues.map((issue) => issue.message).join("; "),
+    };
+  }
+
   try {
     await apiFetch("/units", {
       method: "POST",
-      body: JSON.stringify({ code }),
+      body: JSON.stringify(result.data),
     });
   } catch (err) {
     return {

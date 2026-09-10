@@ -3,16 +3,16 @@ import { z } from "zod";
 export const createUnitSchema = z.object({
   code: z
     .string()
-    .min(1, "El código de unidad es requerido")
     .trim()
+    .min(1, "El código de unidad es requerido")
     .toUpperCase(),
 });
 
 export const updateUnitSchema = z.object({
   code: z
     .string()
-    .min(1, "El código de unidad es requerido")
     .trim()
+    .min(1, "El código de unidad es requerido")
     .toUpperCase()
     .optional(),
 });
