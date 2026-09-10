@@ -37,6 +37,25 @@ const createUnitInputSchema = z.object({
     .toUpperCase(),
 });
 
+const createCommonAreaInputSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, "El nombre debe tener al menos 2 caracteres"),
+    description: z.string().trim().optional(),
+    openTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Formato de hora inválido (HH:mm)"),
+    closeTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Formato de hora inválido (HH:mm)"),
+  })
+  .refine((input) => input.openTime < input.closeTime, {
+    path: ["closeTime"],
+    message: "La hora de cierre debe ser posterior a la hora de apertura",
+  });
+
 // --- Unidades ---
 export async function createUnitAction(
   _prev: ActionState,
@@ -106,16 +125,23 @@ export async function createCommonAreaAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const name = String(formData.get("name") ?? "").trim();
-  const description =
-    String(formData.get("description") ?? "").trim() || undefined;
-  const openTime = String(formData.get("openTime") ?? "");
-  const closeTime = String(formData.get("closeTime") ?? "");
+  const result = createCommonAreaInputSchema.safeParse({
+    name: formData.get("name"),
+    description: String(formData.get("description") ?? "").trim() || undefined,
+    openTime: formData.get("openTime"),
+    closeTime: formData.get("closeTime"),
+  });
+
+  if (!result.success) {
+    return {
+      error: result.error.issues.map((issue) => issue.message).join("; "),
+    };
+  }
 
   try {
     await apiFetch("/common-areas", {
       method: "POST",
-      body: JSON.stringify({ name, description, openTime, closeTime }),
+      body: JSON.stringify(result.data),
     });
   } catch (err) {
     return {

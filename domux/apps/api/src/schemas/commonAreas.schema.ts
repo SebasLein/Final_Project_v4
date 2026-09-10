@@ -8,9 +8,9 @@ export const createCommonAreaSchema = z
   .object({
     name: z
       .string()
-      .min(2, "El nombre debe tener al menos 2 caracteres")
-      .trim(),
-    description: z.string().optional(),
+      .trim()
+      .min(2, "El nombre debe tener al menos 2 caracteres"),
+    description: z.string().trim().optional(),
     openTime: timeString,
     closeTime: timeString,
   })
@@ -23,10 +23,10 @@ export const updateCommonAreaSchema = z
   .object({
     name: z
       .string()
-      .min(2, "El nombre debe tener al menos 2 caracteres")
       .trim()
+      .min(2, "El nombre debe tener al menos 2 caracteres")
       .optional(),
-    description: z.string().optional(),
+    description: z.string().trim().optional(),
     openTime: timeString.optional(),
     closeTime: timeString.optional(),
     active: z.boolean().optional(),

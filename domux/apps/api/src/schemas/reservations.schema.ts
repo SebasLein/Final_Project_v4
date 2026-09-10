@@ -8,10 +8,11 @@ export const createReservationSchema = z
   .object({
     commonAreaId: z
       .string()
-      .min(1, "El ID de la zona común es requerido")
-      .trim(),
+      .trim()
+      .min(1, "El ID de la zona común es requerido"),
     date: z
       .string()
+      .trim()
       .refine((v) => !Number.isNaN(Date.parse(v)), "Fecha inválida")
       .refine((v) => {
         const inputDate = new Date(v);
@@ -28,8 +29,12 @@ export const createReservationSchema = z
   });
 
 export const reservationFiltersSchema = z.object({
-  commonAreaId: z.string().trim().optional(),
-  date: z.string().optional(),
+  commonAreaId: z.string().trim().min(1).optional(),
+  date: z
+    .string()
+    .trim()
+    .refine((v) => !Number.isNaN(Date.parse(v)), "Fecha inválida")
+    .optional(),
 });
 
 export type CreateReservationInput = z.infer<typeof createReservationSchema>;
