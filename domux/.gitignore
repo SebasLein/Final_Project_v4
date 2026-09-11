@@ -9,3 +9,11 @@ apps/web/.env.local
 *.log
 .DS_Store
 .prisma
+# Android (mobile)
+mobile/.gradle/
+mobile/.idea/
+mobile/local.properties
+mobile/**/build/
+mobile/*.iml
+mobile/captures/
+mobile/.cxx/
